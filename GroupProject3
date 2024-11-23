@@ -1,0 +1,81 @@
+from collections import defaultdict
+
+class Caregiver:
+    def __init__(self, name, phone, email, pay_rate=20):
+        #Initializes a caregiver with their personal details, pay rate, and default availability
+        
+        self.name = name
+        self.phone = phone
+        self.email = email
+        self.pay_rate = pay_rate
+         #Default availability
+        self.availability = defaultdict(lambda: "available") 
+
+    def set_availability(self, date, shift, status):
+
+        #Set caregiver's availability for a specific date and shift
+        self.availability[(date, shift)] = status
+
+    def get_availability(self, date, shift):
+
+        #Retrieve caregiver's availability for a specific date and shift
+        return self.availability[(date, shift)]
+
+    def __str__(self):
+
+        #String representation of a caregiver
+        return f"{self.name} ({self.phone}, {self.email})"
+
+
+class Scheduler:
+    def __init__(self, year, month):
+        
+        #Initializes the specific year and month
+        self.year = year
+        self.month = month
+        self.caregivers = []
+         #Default empty schedule
+        self.schedule = defaultdict(lambda: {"AM": None, "PM": None})
+
+    def add_caregiver(self, caregiver):
+        
+        #Add a caregiver to the scheduler
+        self.caregivers.append(caregiver)
+
+    def assign_shift(self, date, shift):
+        
+        #Assign caregivers to a shift based on their availability and preferences
+        preferred = [
+            caregiver for caregiver in self.caregivers
+            if caregiver.get_availability(date, shift) == "preferred"
+        ]
+        available = [
+            caregiver for caregiver in self.caregivers
+            if caregiver.get_availability(date, shift) == "available"
+        ]
+
+        #Assign the first preferred caregiver, or fall back to an available one
+        if preferred:
+            self.schedule[date][shift] = preferred[0]
+        elif available:
+            self.schedule[date][shift] = available[0]
+
+    def generate_schedule(self, days_in_month):
+        
+        #Generate a schedule for the entire month
+        for date in range(1, days_in_month + 1):
+            for shift in ["AM", "PM"]:
+                self.assign_shift(date, shift)
+
+    def display_schedule(self):
+
+        #Display the schedule for the month
+        print("Monthly Caregiver Schedule:")
+        for date in sorted(self.schedule.keys()):
+            am_caregiver = self.schedule[date]["AM"]
+            pm_caregiver = self.schedule[date]["PM"]
+            print(
+                #Print the date 
+                f"Date {date}: AM - {am_caregiver.name if am_caregiver else 'Unassigned'} | "
+                f"PM - {pm_caregiver.name if pm_caregiver else 'Unassigned'}"
+            )
